@@ -87,7 +87,9 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.Transport(quic.NewTransport),
 		libp2p.Transport(tcp.NewTCPTransport),
 	}
-
+	if cfg.Peerstore != nil {
+		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
+	}
 	if cfg.EnableRelay {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
 	}
