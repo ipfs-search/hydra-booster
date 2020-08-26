@@ -3,6 +3,7 @@ package head
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -217,4 +218,6 @@ func (s *Head) RoutingTable() *kbucket.RoutingTable {
 func (s *Head) AddProvider(ctx context.Context, c cid.Cid, id peer.ID) {
 	dht, _ := s.Routing.(*dht.IpfsDHT)
 	dht.ProviderManager.AddProvider(ctx, c.Bytes(), id)
+
+	log.Printf("Found provider for %s: %s", c, id)
 }
