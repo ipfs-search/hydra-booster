@@ -40,6 +40,7 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux.HandleFunc("/heads", headsHandler(hy))
 	mux.HandleFunc("/records/fetch/{key}", recordFetchHandler(hy))
 	mux.HandleFunc("/records/list", recordListHandler(hy))
+	mux.HandleFunc("/records/stream", recordStreamHandler(hy))
 	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
 	mux.HandleFunc("/idgen/remove", idgenRemoveHandler()).Methods("POST")
 	mux.HandleFunc("/swarm/peers", swarmPeersHandler(hy))
@@ -122,6 +123,17 @@ func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 			enc.Encode(result.Entry)
 		}
 		results.Close()
+	}
+}
+
+// "/records/stream" Long-polling JSON stream of providers
+func recordStreamHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		enc := json.NewEncoder(w)
+
+		for provider := range hy.ProviderStream {
+			enc.Encode(provider)
+		}
 	}
 }
 

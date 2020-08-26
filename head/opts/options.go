@@ -3,8 +3,10 @@ package opts
 import (
 	"fmt"
 
+	"github.com/ipfs/go-cid"
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -28,7 +30,11 @@ type Options struct {
 	DisableProvGC    bool
 	DisableProviders bool
 	DisableValues    bool
-	EnableV1Compat   bool
+	ProviderStream   chan struct {
+		cid.Cid
+		peer.ID
+	}
+	EnableV1Compat bool
 }
 
 // Option is the Hydra Head option type.
@@ -151,6 +157,19 @@ func IDGenerator(g idgen.IdentityGenerator) Option {
 	return func(o *Options) error {
 		if g != nil {
 			o.IDGenerator = g
+		}
+		return nil
+	}
+}
+
+// ProviderStream sets the providerstream.
+func ProviderStream(c chan struct {
+	cid.Cid
+	peer.ID
+}) Option {
+	return func(o *Options) error {
+		if c != nil {
+			o.ProviderStream = c
 		}
 		return nil
 	}

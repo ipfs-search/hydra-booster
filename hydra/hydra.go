@@ -14,6 +14,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
@@ -41,6 +42,10 @@ type Hydra struct {
 	Heads           []*head.Head
 	SharedDatastore datastore.Datastore
 	// SharedRoutingTable *kbucket.RoutingTable
+	ProviderStream chan struct {
+		cid.Cid
+		peer.ID
+	}
 
 	hyperLock *sync.Mutex
 	hyperlog  *hyperloglog.Sketch
@@ -89,6 +94,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
+	}
+
+	var providerStream chan struct {
+		cid.Cid
+		peer.ID
 	}
 
 	var hds []*head.Head
@@ -140,6 +150,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.Limiter(limiter),
 			opts.IDGenerator(options.IDGenerator),
 			opts.BootstrapPeers(options.BootstrapPeers),
+			opts.ProviderStream(providerStream),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())
@@ -209,6 +220,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	hydra := Hydra{
 		Heads:           hds,
 		SharedDatastore: ds,
+		ProviderStream:  providerStream,
 		hyperLock:       &hyperLock,
 		hyperlog:        hyperlog,
 	}

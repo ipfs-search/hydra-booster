@@ -57,9 +57,13 @@ type BootstrapStatus struct {
 
 // Head is a container for ipfs/libp2p components used by a Hydra head.
 type Head struct {
-	Host      host.Host
-	Datastore datastore.Datastore
-	Routing   routing.Routing
+	Host           host.Host
+	Datastore      datastore.Datastore
+	Routing        routing.Routing
+	ProviderStream chan struct {
+		cid.Cid
+		peer.ID
+	}
 }
 
 // NewHead constructs a new Hydra Booster head node
@@ -145,9 +149,10 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 
 	bsCh := make(chan BootstrapStatus)
 	hd := Head{
-		Host:      node,
-		Datastore: cfg.Datastore,
-		Routing:   dhtNode,
+		Host:           node,
+		Datastore:      cfg.Datastore,
+		Routing:        dhtNode,
+		ProviderStream: cfg.ProviderStream,
 	}
 
 	go func() {
@@ -218,6 +223,12 @@ func (s *Head) RoutingTable() *kbucket.RoutingTable {
 func (s *Head) AddProvider(ctx context.Context, c cid.Cid, id peer.ID) {
 	dht, _ := s.Routing.(*dht.IpfsDHT)
 	dht.ProviderManager.AddProvider(ctx, c.Bytes(), id)
+
+	// Write provider to stream
+	s.ProviderStream <- struct {
+		cid.Cid
+		peer.ID
+	}{c, id}
 
 	log.Printf("Found provider for %s: %s", c, id)
 }
