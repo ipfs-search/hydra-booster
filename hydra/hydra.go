@@ -9,6 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ipfs-search/ipfs-search/instr"
+	"github.com/ipfs-search/ipfs-search/queue/amqp"
+	"github.com/ipfs-search/ipfs-search/sniffer"
+
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -89,6 +93,44 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
+
+	////////////////////////////////////////
+	// Setup ipfs-search sniffer for head
+
+	instFlusher, err := instr.Install("ipfs-sniffer")
+	if err != nil {
+		return nil, err
+	}
+
+	cConfig := sniffer.DefaultConfig()
+	pubQ := amqp.PublisherFactory{
+		AMQPURL:         "amqp://guest:guest@localhost:5672/",
+		Queue:           "hashes",
+		Instrumentation: instr.New(),
+	}
+	s, err := sniffer.New(cConfig, ds, pubQ)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use batched datastore
+	ds = s.Batching()
+
+	// Overwrite context so that sniffer dying cancels the current context
+	ctx, cancel := context.WithCancel(ctx)
+
+	// Start sniffer
+	go func() {
+		// Cancel parent context when done
+		defer cancel()
+		defer instFlusher()
+
+		err = s.Sniff(ctx)
+		fmt.Printf("Sniffer exited: %s\n", err)
+	}()
+
+	// End setup ipfs-search sniffer
+	////////////////////////////////////////
 
 	var hds []*head.Head
 
