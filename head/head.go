@@ -7,9 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ipfs-search/ipfs-sniffer/eventsource"
-	"github.com/ipfs-search/ipfs-sniffer/sniffer"
-
 	"github.com/hnlq715/golang-lru/simplelru"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -105,16 +102,6 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
-
-	// Setup ipfs-search sniffer for head
-	es, err := eventsource.New(node.EventBus(), ds)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get eventsource: %w", err)
-	}
-	ds = es.Batching()
-	sniff := sniffer.New(es)
-	go sniffer.Sniff(ctx)
-	// End setup ipfs-search sniffer
 
 	dhtOpts := []dht.Option{
 		dht.Mode(dht.ModeServer),

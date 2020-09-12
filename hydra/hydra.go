@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ipfs-search/ipfs-sniffer/sniffer"
+
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -89,6 +91,22 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
+
+	////////////////////////////////////////
+	// Setup ipfs-search sniffer for head
+	s, err := sniffer.New(ds)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use batched datastore
+	ds = s.Batching()
+
+	// Start sniffer
+	go s.Sniff(ctx)
+
+	// End setup ipfs-search sniffer
+	////////////////////////////////////////
 
 	var hds []*head.Head
 
