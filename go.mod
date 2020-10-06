@@ -1,7 +1,5 @@
 module github.com/libp2p/hydra-booster
 
-replace github.com/ipfs-search/ipfs-search => /Users/drbob/Development/ipfs-search
-
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/alanshaw/ipfs-ds-postgres v0.1.0
