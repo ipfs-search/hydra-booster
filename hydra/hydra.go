@@ -102,9 +102,14 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		return nil, err
 	}
 
+	amqpURL := os.Getenv("AMQP_URL")
+	if amqpURL == "" {
+		amqpURL = "amqp://guest:guest@localhost:5672/"
+	}
+
 	cConfig := sniffer.DefaultConfig()
 	pubQ := amqp.PublisherFactory{
-		AMQPURL:         "amqp://guest:guest@localhost:5672/",
+		AMQPURL:         amqpURL,
 		Queue:           "hashes",
 		Instrumentation: instr.New(),
 	}
