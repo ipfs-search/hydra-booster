@@ -11,7 +11,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
-	github.com/ipfs-search/ipfs-search v0.0.0-20201117200728-7f5d61f0f7e7
+	github.com/ipfs-search/ipfs-search v0.0.0-20210206175938-143673f538ad
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
 	github.com/ipfs/go-ds-leveldb v0.4.2
@@ -33,6 +33,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/prometheus/client_golang v1.7.1
+	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.22.5
 	go.uber.org/zap v1.16.0 // indirect

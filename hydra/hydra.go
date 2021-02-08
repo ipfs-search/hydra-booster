@@ -9,9 +9,13 @@ import (
 	"sync"
 	"time"
 
+	// ipfs-search sniffer
+	"github.com/ipfs-search/ipfs-search/components/queue/amqp"
+	"github.com/ipfs-search/ipfs-search/components/sniffer"
 	"github.com/ipfs-search/ipfs-search/instr"
-	"github.com/ipfs-search/ipfs-search/queue/amqp"
-	"github.com/ipfs-search/ipfs-search/sniffer"
+	"github.com/ipfs-search/ipfs-search/utils"
+	samqp "github.com/streadway/amqp"
+	"net"
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-cid"
@@ -94,48 +98,72 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	////////////////////////////////////////
 	// Setup ipfs-search sniffer for head
+	// TODO: Move this entire function to sniffer.NewFactory() or something.
+	ctx, err = func() (context.Context, error) {
+		// Setup instrumentation
+		instrConfig := instr.DefaultConfig()
+		instFlusher, err := instr.Install(instrConfig, "ipfs-sniffer")
+		if err != nil {
+			return nil, err
+		}
+		i := instr.New()
 
-	instFlusher, err := instr.Install("ipfs-sniffer")
-	if err != nil {
-		return nil, err
-	}
+		// Retrying dialer for connecting
+		dialer := &utils.RetryingDialer{
+			Dialer: net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: false,
+			},
+			Context: ctx,
+		}
+		samqpConfig := &samqp.Config{
+			Dial: dialer.Dial,
+		}
 
-	amqpURL := os.Getenv("AMQP_URL")
-	if amqpURL == "" {
-		amqpURL = "amqp://guest:guest@localhost:5672/"
-	}
+		amqpConfig := amqp.DefaultConfig()
 
-	cConfig := sniffer.DefaultConfig()
-	pubQ := amqp.PublisherFactory{
-		AMQPURL:         amqpURL,
-		Queue:           "hashes",
-		Instrumentation: instr.New(),
-	}
-	s, err := sniffer.New(cConfig, ds, pubQ)
-	if err != nil {
-		return nil, err
-	}
+		// Allow override of AMQP URL in env
+		if amqpURL := os.Getenv("AMQP_URL"); amqpURL != "" {
+			amqpConfig.URL = amqpURL
+		}
 
-	// Use batched datastore
-	ds = s.Batching()
+		pubQ := amqp.PublisherFactory{
+			Config:          amqpConfig,
+			AMQPConfig:      samqpConfig,
+			Queue:           "hashes",
+			Instrumentation: i,
+		}
 
-	// Overwrite context so that sniffer dying cancels the current context
-	ctx, cancel := context.WithCancel(ctx)
+		snifferConfig := sniffer.DefaultConfig()
+		s, err := sniffer.New(snifferConfig, ds, pubQ)
+		if err != nil {
+			return nil, err
+		}
 
-	// Start sniffer
-	go func() {
-		// Cancel parent context when done
-		defer cancel()
-		defer instFlusher()
+		// Use batched datastore
+		ds = s.Batching()
 
-		err = s.Sniff(ctx)
-		fmt.Printf("Sniffer exited: %s\n", err)
+		// Overwrite context so that sniffer dying cancels the current context
+		ctx, cancel := context.WithCancel(ctx)
+
+		// Start sniffer
+		go func() {
+			// Cancel parent context when done
+			defer cancel()
+			defer instFlusher()
+
+			err = s.Sniff(ctx)
+			fmt.Printf("Sniffer exited: %s\n", err)
+		}()
+
+		return ctx, nil
 	}()
-
+	if err != nil {
+		return nil, err
+	}
 	// End setup ipfs-search sniffer
-	////////////////////////////////////////
 
 	var hds []*head.Head
 
