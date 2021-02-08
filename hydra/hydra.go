@@ -100,12 +100,12 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	// Setup ipfs-search sniffer for head
 	// TODO: Move this entire function to sniffer.NewFactory() or something.
-	ctx, err = func() (context.Context, error) {
+	ctx, ds, err = func() (context.Context, datastore.Batching, error) {
 		// Setup instrumentation
 		instrConfig := instr.DefaultConfig()
 		instFlusher, err := instr.Install(instrConfig, "ipfs-sniffer")
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		i := instr.New()
 
@@ -139,7 +139,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		snifferConfig := sniffer.DefaultConfig()
 		s, err := sniffer.New(snifferConfig, ds, pubQ)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// Use batched datastore
@@ -158,7 +158,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			fmt.Printf("Sniffer exited: %s\n", err)
 		}()
 
-		return ctx, nil
+		return ctx, ds, nil
 	}()
 	if err != nil {
 		return nil, err
