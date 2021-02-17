@@ -9,13 +9,7 @@ import (
 	"sync"
 	"time"
 
-	// ipfs-search sniffer
-	"github.com/ipfs-search/ipfs-search/components/queue/amqp"
-	"github.com/ipfs-search/ipfs-search/components/sniffer"
-	"github.com/ipfs-search/ipfs-search/instr"
-	"github.com/ipfs-search/ipfs-search/utils"
-	samqp "github.com/streadway/amqp"
-	"net"
+	"github.com/ipfs-search/ipfs-search/components/sniffer/factory"
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-cid"
@@ -99,67 +93,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}
 
 	// Setup ipfs-search sniffer for head
-	// TODO: Move this entire function to sniffer.NewFactory() or something.
-	ctx, ds, err = func() (context.Context, datastore.Batching, error) {
-		// Setup instrumentation
-		instrConfig := instr.DefaultConfig()
-		instFlusher, err := instr.Install(instrConfig, "ipfs-sniffer")
-		if err != nil {
-			return nil, nil, err
-		}
-		i := instr.New()
-
-		// Retrying dialer for connecting
-		dialer := &utils.RetryingDialer{
-			Dialer: net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-				DualStack: false,
-			},
-			Context: ctx,
-		}
-		samqpConfig := &samqp.Config{
-			Dial: dialer.Dial,
-		}
-
-		amqpConfig := amqp.DefaultConfig()
-
-		// Allow override of AMQP URL in env
-		if amqpURL := os.Getenv("AMQP_URL"); amqpURL != "" {
-			amqpConfig.URL = amqpURL
-		}
-
-		pubQ := amqp.PublisherFactory{
-			Config:          amqpConfig,
-			AMQPConfig:      samqpConfig,
-			Queue:           "hashes",
-			Instrumentation: i,
-		}
-
-		snifferConfig := sniffer.DefaultConfig()
-		s, err := sniffer.New(snifferConfig, ds, pubQ)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Use batched datastore
-		ds = s.Batching()
-
-		// Overwrite context so that sniffer dying cancels the current context
-		ctx, cancel := context.WithCancel(ctx)
-
-		// Start sniffer
-		go func() {
-			// Cancel parent context when done
-			defer cancel()
-			defer instFlusher()
-
-			err = s.Sniff(ctx)
-			fmt.Printf("Sniffer exited: %s\n", err)
-		}()
-
-		return ctx, ds, nil
-	}()
+	ctx, ds, err = factory.Start(ctx, ds)
 	if err != nil {
 		return nil, err
 	}
