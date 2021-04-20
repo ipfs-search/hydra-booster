@@ -352,6 +352,10 @@ github.com/ipfs-search/ipfs-search v0.0.0-20210303220436-9dee64a32c4a h1:T9LQNC8
 github.com/ipfs-search/ipfs-search v0.0.0-20210303220436-9dee64a32c4a/go.mod h1:bHa/tGV4nt3tKQx+YWL7G1ITCnB8ZWNWbaWEnjDNCsA=
 github.com/ipfs-search/ipfs-search v0.0.0-20210415163049-0ad29fdf8e0f h1:fbtEYB7neJBWOMqfJ/zLnrmCIEPz+oVws37rlArX2G4=
 github.com/ipfs-search/ipfs-search v0.0.0-20210415163049-0ad29fdf8e0f/go.mod h1:bHa/tGV4nt3tKQx+YWL7G1ITCnB8ZWNWbaWEnjDNCsA=
+github.com/ipfs-search/ipfs-search v0.0.0-20210420142928-991434f87179 h1:6dI0NsXrCFPwNVYBCIOZXFDhd9P9mvfLkAKxBYirbl8=
+github.com/ipfs-search/ipfs-search v0.0.0-20210420142928-991434f87179/go.mod h1:bHa/tGV4nt3tKQx+YWL7G1ITCnB8ZWNWbaWEnjDNCsA=
+github.com/ipfs-search/ipfs-search v0.0.0-20210420143406-228c6f68e00a h1:nUvdkUE3So9R82o7p5E7+jfkWCFfALL9ghNEYDXpqP0=
+github.com/ipfs-search/ipfs-search v0.0.0-20210420143406-228c6f68e00a/go.mod h1:bHa/tGV4nt3tKQx+YWL7G1ITCnB8ZWNWbaWEnjDNCsA=
 github.com/ipfs-search/ipfs-sniffer v0.0.0-20200913112029-cb3ab010d334 h1:nXF8E+KSM4XnyUsdcmuL8/OipQEOw/m2qH3LSE53edk=
 github.com/ipfs-search/ipfs-sniffer v0.0.0-20200913112029-cb3ab010d334/go.mod h1:UwOjwqg2l5zL4NRjEDTd5ytFWmsixgfMpQmntJ8B3G8=
 github.com/ipfs/bbloom v0.0.1 h1:s7KkiBPfxCeDVo47KySjK0ACPc5GJRUxFpdyWEuDjhw=
