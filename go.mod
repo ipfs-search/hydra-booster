@@ -11,7 +11,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
-	github.com/ipfs-search/ipfs-search v0.0.0-20210420143406-228c6f68e00a
+	github.com/ipfs-search/ipfs-search v0.0.0-20210620131018-9c8b6b19ef78
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
 	github.com/ipfs/go-ds-leveldb v0.4.2
