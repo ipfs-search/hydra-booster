@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://ipfs.io/ipfs/QmfRfm5EWe5hLT1XTS6ZURDo8Bg61z9RDzFiRYA1J9uY7J" width="360" alt="Hydra Booster Logo" />
+  <img src="https://ipfs.io/ipfs/bafykbzacebddch6dpmgdyupxygcbi2pvmzwiz7edmvwbtskseldpu3ofj5xjy/hydra-booster.png" width="40%" alt="Hydra Booster Mascot" />
 </p>
 <h1 align="center">Hydra Booster</h1>
 
@@ -26,10 +26,10 @@ A new type of DHT node designed to accelerate the Content Resolution & Content P
 
 ```
 [openssl support (lower CPU usage)]
-go get -u -tags=openssl github.com/libp2p/hydra-booster
+go get -tags=openssl github.com/libp2p/hydra-booster
 
 [standard (sub-optimal)]
-go get -u github.com/libp2p/hydra-booster
+go get github.com/libp2p/hydra-booster
 ```
 
 ## Usage
@@ -66,6 +66,8 @@ Usage of hydra-booster:
         Specify the bucket size, note that for some protocols this must be a specific value i.e. for "/ipfs" it MUST be 20 (default 20)
   -db string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  -disable-db-create
+        Don't create table and index in the target database (default false).
   -disable-prefetch
         Disables pre-fetching of discovered provider records (default false).
   -disable-prov-counts
@@ -107,13 +109,14 @@ Usage of hydra-booster:
 Alternatively, some flags can be set via environment variables. Note that flags take precedence over environment variables.
 
 ```console
-Usage of hydra-booster:
   HYDRA_BOOTSTRAP_PEERS string
         A CSV list of peer addresses to bootstrap from.
   HYDRA_DB string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   HYDRA_PSTORE string
         Peerstore directory for LevelDB store (defaults to in-memory store)
+  HYDRA_DISABLE_DBCREATE
+        Don't create table and index in the target database (default false).
   HYDRA_DISABLE_PREFETCH
         Disables pre-fetching of discovered provider records (default false).
   HYDRA_DISABLE_PROV_COUNTS

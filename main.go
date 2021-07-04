@@ -55,6 +55,7 @@ func main() {
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
+	disableDBCreate := flag.Bool("disable-db-create", false, "Don't create table and index in the target database (default false).")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -79,16 +80,19 @@ func main() {
 	if *idgenAddr == "" {
 		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
 	}
-	if *disableProvGC == false {
+	if !*disableProvGC {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
 	}
 	if *bootstrapPeers == "" {
 		*bootstrapPeers = os.Getenv("HYDRA_BOOTSTRAP_PEERS")
 	}
-	if *disablePrefetch == false {
+	if !*disablePrefetch {
 		*disablePrefetch = mustGetEnvBool("HYDRA_DISABLE_PREFETCH", false)
 	}
-	if *disableProvCounts == false {
+	if !*disableDBCreate {
+		*disableDBCreate = mustGetEnvBool("HYDRA_DISABLE_DBCREATE", false)
+	}
+	if !*disableProvCounts {
 		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
 	}
 	if *pstorePath == "" {
@@ -135,6 +139,7 @@ func main() {
 		BootstrapPeers:    mustConvertToMultiaddr(*bootstrapPeers),
 		DisablePrefetch:   *disablePrefetch,
 		DisableProvCounts: *disableProvCounts,
+		DisableDBCreate:   *disableDBCreate,
 	}
 
 	go func() {
@@ -178,7 +183,7 @@ func main() {
 	}()
 	fmt.Fprintf(os.Stderr, "🧩 HTTP API listening on http://%s\n", *httpAPIAddr)
 
-	termChan := make(chan os.Signal)
+	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
 	<-termChan // Blocks here until either SIGINT or SIGTERM is received.
 	fmt.Println("Received interrupt signal, shutting down...")
